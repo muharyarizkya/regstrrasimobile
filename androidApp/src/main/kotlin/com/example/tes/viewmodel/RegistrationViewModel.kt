@@ -33,6 +33,10 @@ class RegistrationViewModel : ViewModel() {
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
     fun fetchProvinces() {
         _isLoading.value = true
         viewModelScope.launch {
@@ -41,13 +45,22 @@ class RegistrationViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     _provinces.value = response.body()?.data ?: emptyList()
                 } else {
-                    _errorMessage.value = "Gagal mengambil data provinsi"
+                    _errorMessage.value = "Gagal mengambil data provinsi: ${response.message()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.message}"
+                _errorMessage.value = handleNetworkError(e)
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun handleNetworkError(e: Exception): String {
+        return when (e) {
+            is java.net.ConnectException -> "Tidak dapat terhubung ke server. Pastikan server Laravel sudah dijalankan."
+            is java.net.SocketTimeoutException -> "Koneksi ke server timeout."
+            is java.net.UnknownHostException -> "Server tidak ditemukan. Periksa koneksi internet Anda."
+            else -> "Terjadi kesalahan: ${e.localizedMessage}"
         }
     }
 
@@ -59,10 +72,10 @@ class RegistrationViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     _regencies.value = response.body()?.data ?: emptyList()
                 } else {
-                    _errorMessage.value = "Gagal mengambil data kabupaten"
+                    _errorMessage.value = "Gagal mengambil data kabupaten: ${response.message()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.message}"
+                _errorMessage.value = handleNetworkError(e)
             } finally {
                 _isLoading.value = false
             }
@@ -77,10 +90,10 @@ class RegistrationViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     _districts.value = response.body()?.data ?: emptyList()
                 } else {
-                    _errorMessage.value = "Gagal mengambil data kecamatan"
+                    _errorMessage.value = "Gagal mengambil data kecamatan: ${response.message()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.message}"
+                _errorMessage.value = handleNetworkError(e)
             } finally {
                 _isLoading.value = false
             }
@@ -95,10 +108,10 @@ class RegistrationViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     _villages.value = response.body()?.data ?: emptyList()
                 } else {
-                    _errorMessage.value = "Gagal mengambil data kelurahan"
+                    _errorMessage.value = "Gagal mengambil data kelurahan: ${response.message()}"
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.message}"
+                _errorMessage.value = handleNetworkError(e)
             } finally {
                 _isLoading.value = false
             }
@@ -144,10 +157,43 @@ class RegistrationViewModel : ViewModel() {
                 if (response.isSuccessful && response.body()?.status == true) {
                     _registrationSuccess.value = true
                 } else {
-                    _errorMessage.value = response.body()?.message ?: "Gagal mengirim data registrasi"
+                    val errorMsg = if (response.code() == 422) {
+                        val errorBody = response.errorBody()?.string()
+                        if (errorBody != null) {
+                            try {
+                                val json = org.json.JSONObject(errorBody)
+                                val errors = json.optJSONObject("errors")
+                                if (errors != null) {
+                                    val sb = StringBuilder()
+                                    val keys = errors.keys()
+                                    while (keys.hasNext()) {
+                                        val key = keys.next()
+                                        val msgArray = errors.getJSONArray(key)
+                                        for (i in 0 until msgArray.length()) {
+                                            sb.append("• ").append(msgArray.getString(i)).append("\n")
+                                        }
+                                    }
+                                    sb.toString().trim()
+                                } else {
+                                    json.optString("message", "Validasi gagal")
+                                }
+                            } catch (e: Exception) {
+                                "Terjadi kesalahan validasi pada server."
+                            }
+                        } else {
+                            "Terjadi kesalahan validasi (422)."
+                        }
+                    } else {
+                        response.errorBody()?.string()?.let {
+                            try {
+                                org.json.JSONObject(it).optString("message")
+                            } catch (e: Exception) { null }
+                        } ?: response.message() ?: "Gagal mengirim data registrasi"
+                    }
+                    _errorMessage.value = errorMsg
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error: ${e.message}"
+                _errorMessage.value = handleNetworkError(e)
             } finally {
                 _isLoading.value = false
             }
