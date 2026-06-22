@@ -30,6 +30,12 @@ class RegistrationViewModel : ViewModel() {
     private val _registrationSuccess = MutableLiveData<Boolean>()
     val registrationSuccess: LiveData<Boolean> get() = _registrationSuccess
 
+    private val _registrants = MutableLiveData<List<com.example.tes.model.RegistrasiItem>>()
+    val registrants: LiveData<List<com.example.tes.model.RegistrasiItem>> get() = _registrants
+
+    private val _searchLocationResult = MutableLiveData<com.example.tes.model.NominatimResponse?>()
+    val searchLocationResult: LiveData<com.example.tes.model.NominatimResponse?> get() = _searchLocationResult
+
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
@@ -118,6 +124,61 @@ class RegistrationViewModel : ViewModel() {
         }
     }
 
+    fun fetchRegistrants() {
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.apiService.getRegistrasi()
+                if (response.isSuccessful) {
+                    _registrants.value = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                // Silently ignore or handle
+            }
+        }
+    }
+
+    fun searchLocation(query: String) {
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.apiService.searchLocation(
+                    query = query,
+                    userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                if (response.isSuccessful && !response.body().isNullOrEmpty()) {
+                    _searchLocationResult.value = response.body()?.firstOrNull()
+                } else {
+                    // Fallback: Drop the most specific segment (e.g., Kelurahan) and try search again
+                    val parts = query.split(", ")
+                    if (parts.size > 2) {
+                        val fallbackQuery = parts.drop(1).joinToString(", ")
+                        searchLocation(fallbackQuery)
+                    } else {
+                        _searchLocationResult.value = null
+                    }
+                }
+            } catch (e: Exception) {
+                _searchLocationResult.value = null
+            }
+        }
+    }
+
+    fun reverseGeocode(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.apiService.reverseGeocode(
+                    lat = lat,
+                    lon = lon,
+                    userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                if (response.isSuccessful) {
+                    _searchLocationResult.value = response.body()
+                }
+            } catch (e: Exception) {
+                // Silently ignore
+            }
+        }
+    }
+
     fun register(
         nama: String,
         nik: String,
@@ -127,7 +188,9 @@ class RegistrationViewModel : ViewModel() {
         district: String,
         village: String,
         zipCode: String,
-        address: String
+        address: String,
+        latitude: Double? = null,
+        longitude: Double? = null
     ) {
         _isLoading.value = true
         viewModelScope.launch {
@@ -150,7 +213,9 @@ class RegistrationViewModel : ViewModel() {
                     kecamatanNama = district,
                     kelurahanId = villageId,
                     kelurahanNama = village,
-                    kodePos = zipCode
+                    kodePos = zipCode,
+                    latitude = latitude,
+                    longitude = longitude
                 )
 
                 val response = ApiClient.apiService.postRegistrasi(request)

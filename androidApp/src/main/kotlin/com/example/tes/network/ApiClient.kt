@@ -32,14 +32,36 @@ interface ApiService {
         @Path("nik") nik: String
     ): Response<CekNikResponse>
 
+    @GET("registrasi")
+    suspend fun getRegistrasi(): Response<List<RegistrasiItem>>
+
     @POST("registrasi")
     suspend fun postRegistrasi(
         @Body request: RegistrasiRequest
     ): Response<RegistrasiResponse>
+
+    @GET("https://nominatim.openstreetmap.org/search")
+    suspend fun searchLocation(
+        @Query("q") query: String,
+        @Header("User-Agent") userAgent: String,
+        @Query("polygon_geojson") polygonGeoJson: Int = 1,
+        @Query("format") format: String = "json",
+        @Query("limit") limit: Int = 1
+    ): Response<List<NominatimResponse>>
+
+    @GET("https://nominatim.openstreetmap.org/reverse")
+    suspend fun reverseGeocode(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Header("User-Agent") userAgent: String,
+        @Query("polygon_geojson") polygonGeoJson: Int = 1,
+        @Query("format") format: String = "jsonv2",
+        @Query("addressdetails") addressDetails: Int = 1
+    ): Response<NominatimResponse>
 }
 
 object ApiClient {
-    private const val BASE_URL = "http://172.16.121.251:8000/api/"
+    private const val BASE_URL = "http://172.16.120.37:8000/api/"
 
     private val logger = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

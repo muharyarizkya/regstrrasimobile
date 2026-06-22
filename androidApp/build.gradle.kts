@@ -20,6 +20,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.google.play.services.location)
+    implementation(libs.osmdroid)
     
     // Retrofit & Networking
     implementation(libs.retrofit)
