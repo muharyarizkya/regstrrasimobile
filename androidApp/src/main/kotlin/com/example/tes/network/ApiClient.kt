@@ -40,6 +40,23 @@ interface ApiService {
         @Body request: RegistrasiRequest
     ): Response<RegistrasiResponse>
 
+    @PUT("registrasi/{id}")
+    suspend fun updateRegistrasi(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int,
+        @Body request: RegistrasiRequest
+    ): Response<RegistrasiResponse>
+
+    @POST("login")
+    suspend fun login(
+        @Body request: LoginRequest
+    ): Response<LoginResponse>
+
+    @GET("auth/me")
+    suspend fun getMe(
+        @Header("Authorization") token: String
+    ): Response<MeResponse>
+
     @GET("https://nominatim.openstreetmap.org/search")
     suspend fun searchLocation(
         @Query("q") query: String,
@@ -61,7 +78,7 @@ interface ApiService {
 }
 
 object ApiClient {
-    private const val BASE_URL = "http://172.16.120.37:8000/api/"
+    private const val BASE_URL = "http://172.16.121.142:8000/api/"
 
     private val logger = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

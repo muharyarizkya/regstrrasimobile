@@ -62,7 +62,11 @@ data class RegistrasiRequest(
     @SerializedName("kecamatan_nama") val kecamatanNama: String? = null,
     @SerializedName("kelurahan_id") val kelurahanId: Int? = null,
     @SerializedName("kelurahan_nama") val kelurahanNama: String? = null,
+    @SerializedName("desa_nama") val desaNama: String? = null,
+    val kelurahan: Kelurahan? = null,
+    val desa: Kelurahan? = null,
     @SerializedName("kode_pos") val kodePos: String? = null,
+    val password: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null
 )
@@ -72,6 +76,59 @@ data class RegistrasiResponse(
     val status: Boolean,
     val message: String,
     val data: RegistrasiRequest?
+)
+
+data class LoginRequest(
+    @SerializedName("nomor_hp") val nomorHp: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val status: Boolean,
+    val message: String,
+    val token: String? = null,
+    val user: UserProfile? = null
+)
+
+data class UserProfile(
+    val id: Int,
+    @SerializedName("nama_lengkap") val namaLengkap: String,
+    val nik: String,
+    @SerializedName("nomor_hp") val nomorHp: String,
+    @SerializedName("provinsi_nama") val provinsiNama: String? = null,
+    @SerializedName("kabupaten_nama") val kabupatenNama: String? = null,
+    @SerializedName("kecamatan_nama") val kecamatanNama: String? = null,
+    @SerializedName("kelurahan_nama") val kelurahanNama: String? = null,
+    @SerializedName("desa_nama") val desaNama: String? = null,
+    val kelurahan: Kelurahan? = null,
+    val desa: Kelurahan? = null,
+    @SerializedName("alamat_lengkap") val alamatLengkap: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)
+
+data class DebugInfo(
+    @SerializedName("raw_payload") val rawPayload: RawPayload,
+    @SerializedName("header_type") val headerType: String,
+    val algorithm: String,
+    @SerializedName("issued_at") val issuedAt: String,
+    @SerializedName("expired_at") val expiredAt: String,
+    @SerializedName("time_remaining_seconds") val timeRemainingSeconds: Long
+)
+
+data class RawPayload(
+    val sub: Int,
+    val nama: String,
+    @SerializedName("nomor_hp") val nomorHp: String,
+    val iat: Long,
+    val exp: Long
+)
+
+data class MeResponse(
+    val status: Boolean,
+    val message: String,
+    val debug: DebugInfo? = null,
+    val user: UserProfile? = null
 )
 
 // Response Cek NIK

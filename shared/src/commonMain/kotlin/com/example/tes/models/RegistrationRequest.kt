@@ -7,6 +7,7 @@ data class RegistrationRequest(
     val nama_lengkap: String,
     val nik: String,
     val nomor_hp: String,
+    val password: String,
     val provinsi: String,
     val kabupaten: String,
     val kota: String,

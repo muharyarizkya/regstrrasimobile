@@ -189,6 +189,7 @@ class RegistrationViewModel : ViewModel() {
         village: String,
         zipCode: String,
         address: String,
+        password: String,
         latitude: Double? = null,
         longitude: Double? = null
     ) {
@@ -199,7 +200,7 @@ class RegistrationViewModel : ViewModel() {
                 val regencyId = _regencies.value?.find { it.nama == regency }?.id
                 val districtId = _districts.value?.find { it.nama == district }?.id
                 val villageId = _villages.value?.find { it.nama == village }?.id
-
+ 
                 val request = com.example.tes.model.RegistrasiRequest(
                     namaLengkap = nama,
                     nik = nik,
@@ -214,6 +215,7 @@ class RegistrationViewModel : ViewModel() {
                     kelurahanId = villageId,
                     kelurahanNama = village,
                     kodePos = zipCode,
+                    password = password,
                     latitude = latitude,
                     longitude = longitude
                 )

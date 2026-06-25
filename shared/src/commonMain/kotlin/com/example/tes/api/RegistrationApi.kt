@@ -11,7 +11,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 class RegistrationApi {
-    private val baseUrl = "https://your-laravel-backend.com/api" // Ganti dengan URL backend Anda
+    private val baseUrl = "http://172.16.121.104:8000/api"
     
     private val client = HttpClient {
         install(ContentNegotiation) {
@@ -23,25 +23,34 @@ class RegistrationApi {
     }
 
     suspend fun getProvinsi(): List<Provinsi> {
-        return client.get("$baseUrl/provinsi").body()
+        return client.get("$baseUrl/wilayah/provinsi").body<ProvinsiResponse>().data
     }
 
     suspend fun getKabupaten(provinsiId: Int): List<Kabupaten> {
-        return client.get("$baseUrl/kabupaten") {
-            parameter("provinsi_id", provinsiId)
-        }.body()
+        return client.get("$baseUrl/wilayah/kabupaten/$provinsiId").body<KabupatenResponse>().data
     }
 
     suspend fun getKota(kabupatenId: Int): List<Kota> {
-        return client.get("$baseUrl/kota") {
-            parameter("kabupaten_id", kabupatenId)
-        }.body()
+        return client.get("$baseUrl/wilayah/kecamatan/$kabupatenId").body<KotaResponse>().data
     }
 
     suspend fun register(request: RegistrationRequest): HttpResponse {
-        return client.post("$baseUrl/register") {
+        return client.post("$baseUrl/registrasi") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+    }
+
+    suspend fun login(request: LoginRequest): LoginResponse {
+        return client.post("$baseUrl/login") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+    }
+
+    suspend fun getMe(token: String): MeResponse {
+        return client.get("$baseUrl/auth/me") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }.body()
     }
 }

@@ -16,13 +16,22 @@
         android:usesCleartextTraffic="true">
         <activity
             android:exported="true"
-            android:name=".MainActivity">
+            android:name=".WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:label="Form Pendaftaran" />
+        <activity
+            android:name=".LoginActivity"
+            android:label="Masuk Akun" />
+        <activity
+            android:name=".DashboardActivity"
+            android:label="Dashboard" />
         <activity
             android:name=".UserDetailActivity"
             android:label="Detail Pendaftaran" />
